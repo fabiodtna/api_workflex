@@ -11,28 +11,40 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     
+    // login user 
     public function auth(AuthRequest $request){
 
-        //passar dados email password e device_name
-       $user =  User::where('email', $request->email)->first();
-       if(!$user | !Hash::check($request->password, $user->password)){
+        $user =  User::where('email', $request->email)->first();
+            if(!$user | !Hash::check($request->password, $user->password)){
+                return response()->json([
+                    'Error'=> 'Senha ou email esta incorreto!'
+                ],205);
+            }else{
+                $user->tokens()->delete();
+                $token = $user->createToken($request->device_name)->plainTextToken;
             return response()->json([
-                'Error'=> 'Senha ou email esta incorreto!'
-            ]);
-       }else{
-            $user->tokens()->delete();
-            $token = $user->createToken($request->device_name)->plainTextToken;
-
-            return response()->json([
-                'token'=> $token
+                'token'=> $token,
+                'id_user'=> $user->id
         ]);
        }
     }
+    // verificar se o user esta com o token para fazer um login automatico 
     public function userauth(){
         $check = auth::check();
         return response()->json($check);
     }
+    
+    //pegar dados do user Logado
+    public function userauthdata(){
+        
+        $check = auth::check();
+        $user = Auth::user();
 
+        if($check == true){
+            return response()->json($user);
+        }
+    }
+    
 
     public function logout(){
 

@@ -14,7 +14,7 @@ class PostController extends Controller
 
         $perPage = 10;
 
-        $posts = Post::paginate($perPage);
+        $posts = Post::orderBy('created_at', 'desc')->paginate($perPage);
         return response()->json($posts);
     }
 
@@ -35,12 +35,13 @@ class PostController extends Controller
     // Search item
     public function search(Request $request){
 
-        $perPage = 10;
+        $perPage = 20;
 
         $termoPesquisa = $request->input('termo_pesquisa');
 
         $post = Post::where(function ($query) use ($termoPesquisa) {
             $query->where('nome', 'like', '%' . $termoPesquisa . '%')
+            ->orWhere('sobrenome', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('descricao', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('cidade', 'like', '%' . $termoPesquisa . '%');
         })->paginate($perPage);
@@ -67,7 +68,7 @@ class PostController extends Controller
         $post->cidade = $request->input('cidade');
         $post->save();
 
-        return response()->json($post);
+        return response()->json(['message' => 'Sucesso!']);
     }
 
     // Update post 

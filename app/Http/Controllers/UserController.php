@@ -57,11 +57,11 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()->first()], 400);
+            return response()->json(['error' => $validator->errors()->first()], 205);
         }
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()->first()], 400);
+            return response()->json(['error' => $validator->errors()->first()], 205);
         }
 
         // Se a validação passar, você pode criar o usuário
@@ -85,7 +85,8 @@ class UserController extends Controller
         $user->tempcad = '';
         $user->save();
 
-        return response()->json($user, 201); // 201 significa "Created"
+        return response()->json(['Cadastrado com Sucesso!', 200]);
+
     }
 
     public function update(Request $request){
