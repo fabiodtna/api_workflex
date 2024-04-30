@@ -12,8 +12,6 @@ class ChatController extends Controller
 {
     public function index(){
 
-
-
         $userId = Auth::id();
 
         $chats = Chat::where('user_id1', $userId)
@@ -54,29 +52,45 @@ class ChatController extends Controller
 
     public function store(Request $request)
     {
-       
+        // Verifica se o usuário está autenticado
         if(Auth::check()){
-
+            $userId = Auth::user()->id;
+            
+            // Obtém o ID do segundo usuário do request
             $user_id2 = $request->input('id_user');
-            //verifica se o user existe
-            $iduser2 = User::where('id','=',$user_id2)->get();
-
-            if($iduser2 != '[]'){
-                $chat = new Chat();
-                $userId = Auth::user()->id;
-                $chat->user_id1 = $userId;
-                $chat->user_id2 = $user_id2;
-                $chat->save();
-                return response()->json($chat);
-            }else{
-                return ['error' => 'Não Autorizado'];
+            
+            // Verifica se o usuário existe
+            $user2 = User::find($user_id2);
+    
+            // Verifica se o usuário existe e se não é o mesmo que o usuário logado
+            if($user2 && $user_id2 != $userId){
+    
+                // Verifica se já existe um chat entre os dois usuários
+                $existingChat = Chat::where(function($query) use ($userId, $user_id2) {
+                    $query->where('user_id1', $userId)
+                          ->where('user_id2', $user_id2);
+                })->orWhere(function($query) use ($userId, $user_id2) {
+                    $query->where('user_id1', $user_id2)
+                          ->where('user_id2', $userId);
+                })->first();
+    
+                // Se não existe um chat, cria um novo
+                if(!$existingChat){
+                    $chat = new Chat();
+                    $chat->user_id1 = $userId;
+                    $chat->user_id2 = $user_id2;
+                    $chat->save();
+                    return response()->json(['chat_id' => $chat->id]);
+                } else {
+                    return response()->json(['chat_id' => $existingChat->id]);
+                }
+            } else {
+                return ['error' => 'User nao existe'];
             }
-
-        }else{
+        } else {
             return ['error' => 'Não Autorizado'];
         }
-      
-
     }
+    
 
 }

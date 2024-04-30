@@ -49,16 +49,11 @@ class UserController extends Controller
             'cidade' => 'string|max:100',
             'uf'=> 'string|max:4',
             'frela' => 'boolean',
-            'areainte' => 'string|max:200',
             'descricao'=> 'string|max:230',
             'tempcad' => 'string|max:30',
         ], [
             'email.unique' => 'Este email ou cpf já existe.'
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()->first()], 205);
-        }
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()->first()], 205);

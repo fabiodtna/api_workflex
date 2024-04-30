@@ -9,8 +9,6 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ImgController;
 
-
-
 Route::post('/login/auth', [AuthController::class, 'auth']);
 Route::post('/users', [UserController::class, 'store']);   
 Route::post('/upload-image', [ImgController::class, 'uploadimg']);
@@ -29,6 +27,7 @@ Route:: middleware(['auth:sanctum'])->group(function(){
     Route::post('/post/update/{id}', [PostController::class,'update']);
     Route::post('/post/del/{id}',  [PostController::class,'destroy']);
     Route::get('postsuser/', [PostController::class,'alluser']);
+    Route::get('postusers/{id}', [PostController::class,'allpostuser']);
 
     Route::get('/chat',[ChatController::class, 'index']);
     Route::post('/chat/store',[ChatController::class, 'store']);

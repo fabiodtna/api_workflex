@@ -56,17 +56,33 @@ class PostController extends Controller
         $user = Auth::user();
 
         $post = new Post();
-        $post->user_id = $user->id;
-        $post->ft_user = $user->ft_user;
-        $post->nome = $user-> nome;
-        $post->sobrenome = $user ->sobrenome;
-        $post->descricao = $request->input('descricao');
-        $post->foto1 = $request->input('foto1');
-        $post->foto2 = $request->input('foto2');
-        $post->foto3 = $request->input('foto3');
-        $post->uf = $request->input('uf');
-        $post->cidade = $request->input('cidade');
-        $post->save();
+        if( $request->input('cidade') == ''){
+            $post->user_id = $user->id;
+            $post->ft_user = $user->ft_user;
+            $post->nome = $user-> nome;
+            $post->sobrenome = $user ->sobrenome;
+            $post->descricao = $request->input('descricao');
+            $post->foto1 = $request->input('foto1');
+            $post->foto2 = $request->input('foto2');
+            $post->foto3 = $request->input('foto3');
+            $post->uf = Auth::user()->uf; 
+            $post->cidade = Auth::user()->cidade;
+            $post->save();
+        }
+        else{
+            $post->user_id = $user->id;
+            $post->ft_user = $user->ft_user;
+            $post->nome = $user-> nome;
+            $post->sobrenome = $user ->sobrenome;
+            $post->descricao = $request->input('descricao');
+            $post->foto1 = $request->input('foto1');
+            $post->foto2 = $request->input('foto2');
+            $post->foto3 = $request->input('foto3');
+            $post->uf = $request->input('uf');
+            $post->cidade = $request->input('cidade');
+            $post->save();
+        }
+      
 
         return response()->json(['message' => 'Sucesso!']);
     }
@@ -95,10 +111,20 @@ class PostController extends Controller
     // Get all post user logado
 
     public function alluser(){
+
       
         $userId = Auth::user()->id; 
 
-        $post = Post::where('user_id', $userId)->get();
+        $post = Post::where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
+        
+        return response()->json($post);
+    }
+
+    // Get all post user com id 
+
+    public function allpostuser($id){
+
+        $post = Post::where('user_id', $id)->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }
