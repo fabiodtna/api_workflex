@@ -17,6 +17,7 @@ class Post extends Model
          'foto1', 
          'foto2', 
          'foto3',
+         'status_post',
          'uf',
          'cidade'
     ];

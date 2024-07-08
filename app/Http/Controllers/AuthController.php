@@ -14,19 +14,20 @@ class AuthController extends Controller
     // login user 
     public function auth(AuthRequest $request){
 
-        $user =  User::where('email', $request->email)->first();
-            if(!$user | !Hash::check($request->password, $user->password)){
-                return response()->json([
-                    'Error'=> 'Senha ou email esta incorreto!'
-                ],205);
-            }else{
-                $user->tokens()->delete();
-                $token = $user->createToken($request->device_name)->plainTextToken;
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'token'=> $token,
-                'id_user'=> $user->id
-        ]);
-       }
+                'Error' => 'Senha ou email está incorreto!'
+            ], 401);
+        } else {
+            $user->tokens()->delete();
+            $token = $user->createToken($request->device_name)->plainTextToken;
+            return response()->json([
+                'token' => $token,
+                'id_user' => $user->id
+            ]);
+        }
     }
     // verificar se o user esta com o token para fazer um login automatico 
     public function userauth(){

@@ -14,7 +14,9 @@ class PostController extends Controller
 
         $perPage = 10;
 
-        $posts = Post::orderBy('created_at', 'desc')->paginate($perPage);
+        $posts = Post::where('status_post', 'true')->orderBy('created_at', 'desc')
+                     ->paginate($perPage);
+
         return response()->json($posts);
     }
 
@@ -65,6 +67,7 @@ class PostController extends Controller
             $post->foto1 = $request->input('foto1');
             $post->foto2 = $request->input('foto2');
             $post->foto3 = $request->input('foto3');
+            $post->status_post = $request->input('status_post');
             $post->uf = Auth::user()->uf; 
             $post->cidade = Auth::user()->cidade;
             $post->save();
@@ -78,6 +81,7 @@ class PostController extends Controller
             $post->foto1 = $request->input('foto1');
             $post->foto2 = $request->input('foto2');
             $post->foto3 = $request->input('foto3');
+            $post->status_post = $request->input('status_post');
             $post->uf = $request->input('uf');
             $post->cidade = $request->input('cidade');
             $post->save();
@@ -99,6 +103,7 @@ class PostController extends Controller
             $post->foto1 = $request->input('foto1');
             $post->foto2 = $request->input('foto2');
             $post->foto3 = $request->input('foto3');
+            $post->status_post = $request->input('status_post');
             $post->uf = $request->input('uf');
             $post->cidade = $request->input('cidade');
             $post->save();

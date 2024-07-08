@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\User;
 
 class UserController extends Controller
@@ -15,12 +16,31 @@ class UserController extends Controller
    //     return response()->json($users);
    // }
 
-    public function show($id)
-    {
-        $user = User::findOrFail($id);
-        return response()->json($user);
-    }
+   public function show($id)
+   {
+       try {
+           $user = User::findOrFail($id);
+           return response()->json($user);
+       } catch (ModelNotFoundException $e) {
+           return response()->json(['message' => 'User não encontrado!']);
+       }
+   }
 
+   public function searchuser(Request $request){
+
+    $perPage = 20;
+
+    $termoPesquisa = $request->input('termo_pesquisa');
+
+    $user = User::where(function ($query) use ($termoPesquisa) {
+        $query->where('nome', 'like', '%' . $termoPesquisa . '%')
+        ->orWhere('sobrenome', 'like', '%' . $termoPesquisa . '%')
+        ->orWhere('descricao', 'like', '%' . $termoPesquisa . '%')
+        ->orWhere('cidade', 'like', '%' . $termoPesquisa . '%');
+    })->paginate($perPage);
+
+    return response()->json($user);
+   }
 
     public function store(Request $request)
     {
@@ -145,6 +165,31 @@ class UserController extends Controller
             return redirect()->route('login')
                 ->with('success', 'Sua senha foi redefinida com sucesso. Verifique seu e-mail para a nova senha.');
         }
+
+    public function savetokenNotify(Request $request) {
+    // Obtenha o usuário autenticado
+    $user = Auth::user();
+
+    // Verifique se o usuário está autenticado
+    if (!$user) {
+        return response()->json(['error' => 'Usuário não autenticado'], 401);
+    }
+
+    // Valide os dados da requisição para garantir que 'notifitoken' não esteja vazio
+    $request->validate([
+        'notifitoken' => 'required|string',
+    ]);
+
+    // Atualize o campo 'notifitoken' do usuário
+    $user->notifitoken = $request->input('notifitoken');
+
+    // Salve as alterações no banco de dados
+    $user->save();
+
+    // Retorne uma resposta JSON com os detalhes do usuário atualizado
+    return response()->json(['message' => 'Notifitoken atualizado com sucesso'], 200);
+
+    }
 
 }
     
