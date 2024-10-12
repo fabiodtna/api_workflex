@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\User;
 
+use App\Mail\workflexmail;
+use Illuminate\Support\Facades\Mail;
+
 class UserController extends Controller
 {
    // public function index(){
@@ -190,6 +193,20 @@ class UserController extends Controller
     return response()->json(['message' => 'Notifitoken atualizado com sucesso'], 200);
 
     }
+
+
+    public function emailresetpass()
+{
+    $detalhes = [
+        'titulo' => 'Bem-vindo ao Workflex!',
+        'mensagem' => 'Reset senha sua senha e AAABBBCCC'
+    ];
+
+    Mail::to('sansdtna@gmail.com')->send(new WorkflexMail($detalhes));
+
+    return 'E-mail enviado com sucesso!';
+}
+
 
 }
     

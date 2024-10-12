@@ -14,6 +14,7 @@ Route::post('/login/auth', [AuthController::class, 'auth']);
 Route::post('/users', [UserController::class, 'store']);
 Route::post('/upload-image', [ImgController::class, 'uploadimg']);
 Route::post('/send-push-notification', [ApiController::class, 'sendPushNotification']);
+Route::get('/resetpass', [UserController::class, 'emailresetpass']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/user/{id}', [UserController::class, 'show']);
@@ -28,7 +29,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/post/search', [PostController::class, 'search']);
     Route::get('/post/{id}', [PostController::class, 'show']);
     Route::post('/post/update/{id}', [PostController::class, 'update']);
-    Route::post('/post/del/{id}',  [PostController::class, 'destroy']);
+    Route::get('/post/del/{id}',  [PostController::class, 'destroy']);
     Route::get('postsuser/', [PostController::class, 'alluser']);
     Route::get('postusers/{id}', [PostController::class, 'allpostuser']);
 

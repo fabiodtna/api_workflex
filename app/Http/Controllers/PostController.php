@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PostController extends Controller
 {
@@ -94,23 +95,32 @@ class PostController extends Controller
     // Update post 
     public function update(Request $request, $id)
     {
-        $post = Post::findOrFail($id);
-
-        $userId = Auth::user()->id; 
-
-        if($post->user_id == $userId){
-            $post->descricao = $request->input('descricao');
-            $post->foto1 = $request->input('foto1');
-            $post->foto2 = $request->input('foto2');
-            $post->foto3 = $request->input('foto3');
-            $post->status_post = $request->input('status_post');
-            $post->uf = $request->input('uf');
-            $post->cidade = $request->input('cidade');
-            $post->save();
-            return response()->json($post);
+        try {
+            $post = Post::findOrFail($id);
+    
+            // Verifica a autorização do usuário e atualiza o post
+            $userId = Auth::user()->id;
+    
+            if ($post->user_id == $userId) {
+                // Atualiza os campos do post com os valores do request
+                $post->descricao = $request->input('descricao') ?? $post->descricao;
+                $post->foto1 = $request->input('foto1') ?? $post->foto1;
+                $post->foto2 = $request->input('foto2') ?? $post->foto2;
+                $post->foto3 = $request->input('foto3') ?? $post->foto3;
+                $post->status_post = $request->input('status_post') ?? $post->status_post;
+                $post->uf = $request->input('uf') ?? $post->uf;
+                $post->cidade = $request->input('cidade') ?? $post->cidade;
+    
+                $post->save();
+    
+                return response()->json($post);
+            }
+    
+            return response()->json(['error' => 'Não autorizado!'], 403);
+    
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Post não encontrado!'], 404);
         }
-
-        return response()->json(['error' => 'Não autorizado!'], 404);
     }
 
     // Get all post user logado
