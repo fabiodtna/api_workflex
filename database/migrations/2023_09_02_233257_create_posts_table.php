@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('ft_user');
-            $table->string('nome');
-            $table->string('sobrenome');
+            $table->string('ft_user'); // remover
+            $table->string('nome'); // remover
+            $table->string('sobrenome'); // remover
             $table->string('descricao');
             $table->string('foto1');
             $table->string('foto2');

@@ -8,13 +8,14 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ImgController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\EmailController;
 use Symfony\Component\HttpFoundation\Response;
 
 Route::post('/login/auth', [AuthController::class, 'auth']);
-Route::post('/users', [UserController::class, 'store']);
+Route::post('/register', [UserController::class, 'store']);
 Route::post('/upload-image', [ImgController::class, 'uploadimg']);
 Route::post('/send-push-notification', [ApiController::class, 'sendPushNotification']);
-Route::get('/resetpass', [UserController::class, 'emailresetpass']);
+Route::post('/enviar-email', [EmailController::class, 'enviarEmail']);
 
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/user/{id}', [UserController::class, 'show']);
@@ -41,6 +42,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::get('/logout', [AuthController::class, 'logout']);
 });
+
 
 Route::fallback(function(){
     return response()->json(['message' => 'Rota não encontrada ou método não suportado!'], Response::HTTP_NOT_FOUND);

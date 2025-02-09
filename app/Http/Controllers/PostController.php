@@ -4,35 +4,35 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class PostController extends Controller
 {
     // Get posts
-    public function index(){
-
-        //http://127.0.0.1:8000/post?page=4
-
+    public function index()
+    {
         $perPage = 10;
 
-        $posts = Post::where('status_post', 'true')->orderBy('created_at', 'desc')
-                     ->paginate($perPage);
+        $posts = Post::where('status_post', 'true')
+                    ->orderBy('created_at', 'desc')
+                    ->with('user:id,nome,sobrenome,ft_user') 
+                    ->paginate($perPage);
 
         return response()->json($posts);
     }
 
+
     // Show one post
     public function show($id)
     {
-        $post = Post::find($id);
-        
-        if($post){
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->find($id);
+    
+        if ($post) {
             return response()->json($post);
         } else {
             return response()->json(['error' => 'O post não foi encontrado'], 404);
         }
-      
-        
     }
 
     // Search item
@@ -47,7 +47,7 @@ class PostController extends Controller
             ->orWhere('sobrenome', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('descricao', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('cidade', 'like', '%' . $termoPesquisa . '%');
-        })->paginate($perPage);
+        })->with('user:id,nome,sobrenome,ft_user')->paginate($perPage);
 
         return response()->json($post);
 
@@ -61,9 +61,9 @@ class PostController extends Controller
         $post = new Post();
         if( $request->input('cidade') == ''){
             $post->user_id = $user->id;
-            $post->ft_user = $user->ft_user;
-            $post->nome = $user-> nome;
-            $post->sobrenome = $user ->sobrenome;
+            $post->ft_user = 0;
+            $post->nome = 0;
+            $post->sobrenome = 0;
             $post->descricao = $request->input('descricao');
             $post->foto1 = $request->input('foto1');
             $post->foto2 = $request->input('foto2');
@@ -75,9 +75,9 @@ class PostController extends Controller
         }
         else{
             $post->user_id = $user->id;
-            $post->ft_user = $user->ft_user;
-            $post->nome = $user-> nome;
-            $post->sobrenome = $user ->sobrenome;
+            $post->ft_user = 0;
+            $post->nome = 0;
+            $post->sobrenome = 0;
             $post->descricao = $request->input('descricao');
             $post->foto1 = $request->input('foto1');
             $post->foto2 = $request->input('foto2');
@@ -130,7 +130,7 @@ class PostController extends Controller
       
         $userId = Auth::user()->id; 
 
-        $post = Post::where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }
@@ -139,7 +139,7 @@ class PostController extends Controller
 
     public function allpostuser($id){
 
-        $post = Post::where('user_id', $id)->orderBy('created_at', 'desc')->paginate(10);
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->where('user_id', $id)->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }

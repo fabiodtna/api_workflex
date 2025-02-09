@@ -156,9 +156,9 @@ class UserController extends Controller
 
             // Gere uma nova senha aleatória
             $novaSenha = Str::random(8);
-
+        
             // Atualize a senha do usuário com a nova senha gerada
-            $user->password = Hash::make($novaSenha);
+            $user->password = bcrypt($novaSenha);
             $user->save();
 
             // Envie um e-mail com a nova senha para o usuário
@@ -197,9 +197,12 @@ class UserController extends Controller
 
     public function emailresetpass()
 {
+    $num = str_pad(mt_rand(1,99999999),8,'0',STR_PAD_LEFT);
+
+
     $detalhes = [
         'titulo' => 'Bem-vindo ao Workflex!',
-        'mensagem' => 'Reset senha sua senha e AAABBBCCC'
+        'mensagem' => 'Reset senha sua senha'
     ];
 
     Mail::to('sansdtna@gmail.com')->send(new WorkflexMail($detalhes));
