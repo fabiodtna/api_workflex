@@ -13,39 +13,49 @@ class ChatController extends Controller
 {
     public function index()
         {
-            try{
+            try {
                 $userId = Auth::id();
         
+                // Verifica se o usuário está autenticado
+                if (!$userId) {
+                    return response()->json(['message' => 'User not authenticated'], 401);
+                }
+        
                 // Carrega os chats relacionados ao usuário logado
-            $chats = Chat::where('user_id1', $userId)
-                ->orWhere('user_id2', $userId)
-                ->orderBy('updated_at', 'desc') 
-                ->get();
+                $chats = Chat::where(function ($query) use ($userId) {
+                        $query->where('user_id1', $userId)
+                              ->orWhere('user_id2', $userId);
+                    })
+                    ->whereNotNull('user_id1')
+                    ->whereNotNull('user_id2')
+                    ->orderBy('updated_at', 'desc')
+                    ->get();
         
                 // Formata os chats para a resposta
-            $formattedChats = $chats->map(function ($chat) use ($userId) {
-                // Determine o ID do outro usuário no chat
-                $otherUserId = $chat->user_id1 === $userId ? $chat->user_id2 : $chat->user_id1;
+                $formattedChats = $chats->map(function ($chat) use ($userId) {
+                    // Determine o ID do outro usuário no chat
+                    $otherUserId = $chat->user_id1 === $userId ? $chat->user_id2 : $chat->user_id1;
         
-                // Obtenha os detalhes do outro usuário
-                $otherUser = User::find($otherUserId);
+                    // Obtenha os detalhes do outro usuário
+                    $otherUser = User::find($otherUserId);
         
-                // Formate a resposta
-                return [
-                    'chat_id' => $chat->id,
-                    'other_user' => [
-                        'id' => $otherUser->id,
-                        'nome' => $otherUser->nome,
-                        'sobrenome' => $otherUser->sobrenome,
-                        'photo' => $otherUser->ft_user,
-                    ],
-                    // Outros dados do chat, se necessário
-                ];
-            });
+                    // Define os valores padrão caso o usuário não seja encontrado
+                    return [
+                        'chat_id' => $chat->id,
+                        'other_user' => [
+                            'id' => $otherUserId,
+                            'nome' => $otherUser->nome ?? 'User',
+                            'sobrenome' => $otherUser->sobrenome ?? 'Deletado',
+                            'photo' => $otherUser->ft_user ?? 'padrao.jpg',
+                        ],
+                    ];
+                });
         
-            return response()->json($formattedChats);
+                return response()->json($formattedChats);
             } catch (ModelNotFoundException $e) {
-                return response()->json(['message' => 'No Chat user!']);
+                return response()->json(['message' => 'No Chat user found'], 404);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
             }
             
         }

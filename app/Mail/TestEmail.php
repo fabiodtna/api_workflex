@@ -9,18 +9,18 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class Emailwk extends Mailable
+
+class TestEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $dados;
-
+    public $data; 
     /**
      * Create a new message instance.
      */
-    public function __construct($dados)
+    public function __construct($data)
     {
-        $this->dados = $dados;
+        $this->data = $data; 
     }
 
     /**
@@ -29,29 +29,20 @@ class Emailwk extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Emailwk',
+            subject: 'Test Email',
         );
-    }
-
-
-    public function build()
-    {
-        return $this->from(env('MAIL_FROM_ADDRESS'), 'Workflex') // ✅ Correto!
-        ->subject('Seu Assunto')
-        ->view('emails.meu_email')
-        ->with('dados', $this->dados);
     }
 
     /**
      * Get the message content definition.
      */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'view.name',
-        );
-    }
 
+     public function build()
+    {
+        return $this->subject('Assunto do E-mail')
+                    ->view('otpcode')->with('data', $this->data);; // Nome da view (caminho relativo a resources/views)
+    }
+        
     /**
      * Get the attachments for the message.
      *

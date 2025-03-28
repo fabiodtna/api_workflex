@@ -15,6 +15,7 @@ class PostController extends Controller
         $perPage = 10;
 
         $posts = Post::where('status_post', 'true')
+                    ->whereHas('user')
                     ->orderBy('created_at', 'desc')
                     ->with('user:id,nome,sobrenome,ft_user') 
                     ->paginate($perPage);
@@ -26,7 +27,7 @@ class PostController extends Controller
     // Show one post
     public function show($id)
     {
-        $post = Post::with('user:id,nome,sobrenome,ft_user')->find($id);
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->whereHas('user')->find($id);
     
         if ($post) {
             return response()->json($post);
@@ -47,7 +48,7 @@ class PostController extends Controller
             ->orWhere('sobrenome', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('descricao', 'like', '%' . $termoPesquisa . '%')
             ->orWhere('cidade', 'like', '%' . $termoPesquisa . '%');
-        })->with('user:id,nome,sobrenome,ft_user')->paginate($perPage);
+        })->whereHas('user')->with('user:id,nome,sobrenome,ft_user')->paginate($perPage);
 
         return response()->json($post);
 
@@ -130,7 +131,7 @@ class PostController extends Controller
       
         $userId = Auth::user()->id; 
 
-        $post = Post::with('user:id,nome,sobrenome,ft_user')->where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->whereHas('user')->where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }
@@ -139,7 +140,7 @@ class PostController extends Controller
 
     public function allpostuser($id){
 
-        $post = Post::with('user:id,nome,sobrenome,ft_user')->where('user_id', $id)->orderBy('created_at', 'desc')->paginate(10);
+        $post = Post::with('user:id,nome,sobrenome,ft_user')->whereHas('user')->where('user_id', $id)->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }

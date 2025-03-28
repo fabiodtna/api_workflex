@@ -8,8 +8,11 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\User;
-
+use App\Models\Post;
+use App\Models\OtpReset;
+use Carbon\Carbon;
 use App\Mail\workflexmail;
+
 use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
@@ -45,68 +48,105 @@ class UserController extends Controller
     return response()->json($user);
    }
 
-    public function store(Request $request)
-    {
-
-        do {
-            $uuid = mt_rand(100000, 9999999999);
-        } while (User::where('id', $uuid)->exists());
-
-        $validator = Validator::make($request->all(), [
-            'ft_user' => 'string|max:255',
-            'ft_capa'=> 'string|max:255',
-            'nome' => 'required|string|max:255',
-            'sobrenome' => 'required|string|max:50',
-            'telefone' => 'required|string|max:15',
-            'cpf'=>'string|max:13',
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique('users')->where(function ($query) use ($request) {
-                    return $query->where('email', $request->input('email'));
-                })->ignore(null, 'id')
-            ],
-            'password' => 'required|string|min:6',
-            'cidade' => 'string|max:100',
-            'uf'=> 'string|max:4',
-            'frela' => 'boolean',
-            'descricao'=> 'string|max:230',
-            'tempcad' => 'string|max:30',
-        ], [
-            'email.unique' => 'Este email ou cpf já existe.'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()->first()], 205);
-        }
-
-        // Se a validação passar, você pode criar o usuário
-        $user = new User();
-        $user->id = $uuid;
-        $user->ft_user = $request->input('ft_user');
-        $user->ft_capa = $request->input('ft_capa');
-        $user->nome = $request->input('nome');
-        $user->sobrenome = $request->input('sobrenome');
-        $user->telefone = $request->input('telefone');
-        $user->cpf = $request->input('cpf');
-        $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-        $user->cidade = $request->input('cidade');
-        $user->uf = $request->input('uf');
-        $user->frela = $request->input('frela');
-        $user->areainte = $request->input('areainte');
-        $user->descricao = $request->input('descricao');
-        $user->services = $request->input('service');
-        $user->avaliacao = '';
-        $user->tempcad = '';
-        $user->save();
-
-        return response()->json(['Cadastrado com Sucesso!', 200]);
-
-    }
-
+   public function store(Request $request)
+   {
+       do {
+           $uuid = mt_rand(100000, 9999999999);
+       } while (User::where('id', $uuid)->exists());
+   
+       // Validação dos dados
+       $validator = Validator::make($request->all(), [
+           'ft_user' => 'string|max:255',
+           'ft_capa'=> 'string|max:255',
+           'nome' => 'required|string|max:255',
+           'sobrenome' => 'required|string|max:50',
+           'telefone' => 'required|string|max:15',
+           'cpf' => ['required', 'string', 'size:11', function ($attribute, $value, $fail) {
+               if (!self::isValidCPF($value)) {
+                   $fail('CPF inválido!');
+               }
+           }],
+           'email' => [
+               'required',
+               'string',
+               'email',
+               'max:255',
+               Rule::unique('users')->where(function ($query) use ($request) {
+                   return $query->where('email', $request->input('email'));
+               })->ignore(null, 'id')
+           ],
+           'password' => 'required|string|min:6',
+           'cidade' => 'string|max:100',
+           'uf'=> 'string|max:4',
+           'frela' => 'boolean',
+           'descricao'=> 'string|max:230',
+           'tempcad' => 'string|max:30',
+       ], [
+           'email.unique' => 'Este email já existe.',
+           'cpf.unique' => 'Este CPF já está cadastrado.',
+       ]);
+   
+       if ($validator->fails()) {
+           return response()->json(['error' => $validator->errors()->first()], 205);
+       }
+   
+       // Hash do CPF para armazenar de forma segura
+       $cpf = $request->input('cpf');
+       $hashcpf = hash('sha256', $cpf);
+   
+       // Verifica se o CPF já está cadastrado
+       if (User::where('cpf', $hashcpf)->exists()) {
+           return response()->json(['message' => 'CPF já cadastrado!'], 205);
+       }
+   
+       // Criação do usuário
+       $user = new User();
+       $user->id = $uuid;
+       $user->ft_user = $request->input('ft_user');
+       $user->ft_capa = $request->input('ft_capa');
+       $user->nome = $request->input('nome');
+       $user->sobrenome = $request->input('sobrenome');
+       $user->telefone = $request->input('telefone');
+       $user->cpf = $hashcpf;
+       $user->email = $request->input('email');
+       $user->password = bcrypt($request->input('password'));
+       $user->cidade = $request->input('cidade');
+       $user->uf = $request->input('uf');
+       $user->frela = $request->input('frela');
+       $user->areainte = $request->input('areainte');
+       $user->descricao = $request->input('descricao');
+       $user->services = $request->input('service');
+       $user->avaliacao = '';
+       $user->tempcad = '';
+       $user->save();
+   
+       return response()->json(['message' => 'Cadastrado com Sucesso!'], 200);
+   }
+   
+   // Função para validar CPF
+   public static function isValidCPF($cpf)
+   {
+       // Remove caracteres não numéricos
+       $cpf = preg_replace('/[^0-9]/', '', $cpf);
+   
+       if (strlen($cpf) != 11 || preg_match('/(\d)\1{10}/', $cpf)) {
+           return false;
+       }
+   
+       for ($t = 9; $t < 11; $t++) {
+           $d = 0;
+           for ($c = 0; $c < $t; $c++) {
+               $d += $cpf[$c] * (($t + 1) - $c);
+           }
+           $d = ((10 * $d) % 11) % 10;
+           if ($cpf[$c] != $d) {
+               return false;
+           }
+       }
+   
+       return true;
+   }
+   
     public function update(Request $request){
      
           // Obtenha o usuário autenticado
@@ -143,31 +183,57 @@ class UserController extends Controller
     }
 
 
-    //colocar isso pra funcionar
     public function resetSenha(Request $request)
-        {
-            // Valide o campo de e-mail
-            $request->validate([
-                'email' => 'required|email|exists:users,email',
-            ]);
+    {
+        $otpCode = $request->json('otpcode'); 
+        $password = $request->json('senha');
 
-            // Encontre o usuário com base no e-mail
-            $user = User::where('email', $request->email)->first();
-
-            // Gere uma nova senha aleatória
-            $novaSenha = Str::random(8);
-        
-            // Atualize a senha do usuário com a nova senha gerada
-            $user->password = bcrypt($novaSenha);
-            $user->save();
-
-            // Envie um e-mail com a nova senha para o usuário
-            // Você pode usar o serviço de envio de e-mail do Laravel aqui
-
-            // Redirecione de volta com uma mensagem de sucesso
-            return redirect()->route('login')
-                ->with('success', 'Sua senha foi redefinida com sucesso. Verifique seu e-mail para a nova senha.');
+        if (!$otpCode || !$password) {
+            return response()->json([
+                'error' => 'Faltando parâmetros necessários'
+            ], 400);
         }
+
+        // Busca o OTP no banco
+        $otp = OtpReset::where('otp_code', $otpCode)
+                    ->first();
+
+      
+        if (!$otp) {
+            return response()->json([
+                'error' => 'Código OTP inválido'
+            ], 410);
+        }
+
+      
+        
+        // Verifica se o OTP já expirou
+        if (Carbon::now()->greaterThan(Carbon::parse($otp->expires_at))) {
+            return response()->json([
+                'error' => 'Código OTP expirado'
+            ], 410);
+        }
+
+        $user = User::where('email', $otp->email)->first();
+        
+        
+        if (!$user) {
+            return response()->json([
+                'error' => 'Usuário não encontrado'
+            ], 404);
+        }
+
+
+        $user->password = bcrypt($request->json('senha'));
+        $user->save();
+
+
+        return response()->json([
+            'success' => 'Senha alterada com sucesso!'
+        ], 200);
+    }
+
+
 
     public function savetokenNotify(Request $request) {
     // Obtenha o usuário autenticado
@@ -193,22 +259,25 @@ class UserController extends Controller
     return response()->json(['message' => 'Notifitoken atualizado com sucesso'], 200);
 
     }
+    public function getDeletedUsers()
+    {
+        $users = User::onlyTrashed()->get();
+        return response()->json($users);
+    }
 
+    public function deluser(){
 
-    public function emailresetpass()
-{
-    $num = str_pad(mt_rand(1,99999999),8,'0',STR_PAD_LEFT);
+        $user = Auth::user();
 
-
-    $detalhes = [
-        'titulo' => 'Bem-vindo ao Workflex!',
-        'mensagem' => 'Reset senha sua senha'
-    ];
-
-    Mail::to('sansdtna@gmail.com')->send(new WorkflexMail($detalhes));
-
-    return 'E-mail enviado com sucesso!';
-}
+        if ($user) {
+            $user->delete(); 
+            return response()->json(['message' => 'Usuário deletado com sucesso'], 200);
+        }
+            Post::where('user_id', $user->id)
+            ->update(['status_post' => false]);
+    
+        return response()->json(['message' => 'Usuário não autenticado'], 401);
+    }
 
 
 }

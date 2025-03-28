@@ -43,9 +43,22 @@ class MessageController extends Controller
             $otherUser = User::find($otherUserId);
             if ($otherUser && $otherUser->push_token) {
                 $token = $otherUser->push_token;
-                $title = 'Nova mensagem no chat';
-                $body = 'Você tem novas mensagens no chat ' . $idchat;
-                $this->sendPushNotification($token, $title, $body);
+                $title = 'Workflex Service';
+                $body = 'Nova mensagem' . $otherUser->nome;
+                
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->post('https://exp.host/--/api/v2/push/send', [
+                    'to' => $token,
+                    'title' => $title,
+                    'body' => $body,
+                ]);
+        
+                if ($response->successful()) {
+                    return response()->json(['success' => 'Notificação enviada com sucesso']);
+                }
+        
+                return response()->json(['error' => 'Falha ao enviar a notificação'], $response->status());
             }
 
             return response()->json($mensagens);
@@ -53,23 +66,6 @@ class MessageController extends Controller
             // O usuário não faz parte da conversa, retorne uma resposta adequada
             return response()->json(['error' => 'Você não faz parte desta conversa.'], 403);
         }
-    }
-
-    public function sendPushNotification($token, $title, $body)
-    {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->post('https://exp.host/--/api/v2/push/send', [
-            'to' => $token,
-            'title' => $title,
-            'body' => $body,
-        ]);
-
-        if ($response->successful()) {
-            return response()->json(['success' => 'Notificação enviada com sucesso']);
-        }
-
-        return response()->json(['error' => 'Falha ao enviar a notificação'], $response->status());
     }
 
 

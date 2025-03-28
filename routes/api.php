@@ -10,13 +10,14 @@ use App\Http\Controllers\ImgController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailController;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Mail;
 
 Route::post('/login/auth', [AuthController::class, 'auth']);
 Route::post('/register', [UserController::class, 'store']);
 Route::post('/upload-image', [ImgController::class, 'uploadimg']);
-Route::post('/send-push-notification', [ApiController::class, 'sendPushNotification']);
-Route::post('/enviar-email', [EmailController::class, 'enviarEmail']);
-
+Route::post('/send-email', [EmailController::class, 'sendEmail']);
+Route::post('/reset-senha', [UserController::class, 'resetsenha']);
+   
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/user/{id}', [UserController::class, 'show']);
     Route::post('/user/search', [UserController::class, 'searchuser']);
@@ -24,6 +25,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/login/verify', [AuthController::class, 'userauth']);
     Route::get('/logado', [AuthController::class, 'userauthdata']);
     Route::post('/notifytoken',  [UserController::class, 'savetokenNotify']);
+    Route::get('/delete_user',  [UserController::class, 'deluser']);
+ 
 
     Route::get('/post', [PostController::class, 'index']);
     Route::post('/post', [PostController::class, 'store']);
@@ -49,6 +52,6 @@ Route::fallback(function(){
 });
 
 Route::get('/', function(){
-    return redirect('https://www.siteexterno.com');
+    return redirect('http://workflex.wuaze.com/');
 });
 ?>

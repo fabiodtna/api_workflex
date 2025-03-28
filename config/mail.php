@@ -37,13 +37,13 @@ return [
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
-            'port' => env('MAIL_PORT', 587),
+            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+            'port' => env('MAIL_PORT', 465),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN'),
+            'auth_mode' => null,
         ],
 
         'ses' => [
@@ -98,11 +98,10 @@ return [
     |
     */
 
-    'from' => [
-        'address' => env('workflexservice@work.com', 'Workflex'),
-        'name' => env('MAIL_FROM_NAME', 'teste'),
-    ],
-
+   'from' => [
+    'address' => env('MAIL_FROM_ADDRESS'),
+    'name' => env('MAIL_FROM_NAME', 'Workflex Services'),
+   ],
     /*
     |--------------------------------------------------------------------------
     | Markdown Mail Settings
