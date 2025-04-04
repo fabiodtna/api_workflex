@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ImgController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\FeedbackController;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Mail;
 
@@ -17,6 +18,12 @@ Route::post('/register', [UserController::class, 'store']);
 Route::post('/upload-image', [ImgController::class, 'uploadimg']);
 Route::post('/send-email', [EmailController::class, 'sendEmail']);
 Route::post('/reset-senha', [UserController::class, 'resetsenha']);
+
+Route::post('/feedback', [FeedbackController::class, 'store']);
+Route::get('/feedbackWorkflexservice', [FeedbackController::class, 'index']);
+
+Route::get('/feedback', [FeedbackController::class, 'index']);
+Route::post('/feedback', [FeedbackController::class, 'store']);
    
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/user/{id}', [UserController::class, 'show']);

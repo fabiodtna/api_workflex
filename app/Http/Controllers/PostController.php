@@ -131,7 +131,7 @@ class PostController extends Controller
       
         $userId = Auth::user()->id; 
 
-        $post = Post::with('user:id,nome,sobrenome,ft_user')->whereHas('user')->where('user_id', $userId)->orderBy('created_at', 'desc')->paginate(10);
+        $post = Post::where('user_id', $userId)->with('user:id,nome,sobrenome,ft_user')->whereHas('user')->orderBy('created_at', 'desc')->paginate(10);
         
         return response()->json($post);
     }
